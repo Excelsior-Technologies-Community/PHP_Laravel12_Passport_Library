@@ -131,8 +131,63 @@ This generates:
 
 ---
 
-##  Step 6: User Model Update
+##  Step 6: Migration Table (Users Default Table)
 
+File: database/migrations/2014_10_12_000000_create_users_table.php
+
+```
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('sessions');
+    }
+};
+```
+
+##  Step 7: User Model Update
 
 ```
 app/Models/User.php
@@ -151,7 +206,7 @@ Passport tokens are attached to the user behind the scenes.
 
 ---
 
-##  Step 7: Create Web Authentication Controller
+##  Step 8: Create Web Authentication Controller
 
 ```bash
 php artisan make:controller Web/AuthController
@@ -237,9 +292,9 @@ class AuthController extends Controller
 
 ---
 
-##  Step 8: Create Blade Views
+##  Step 9: Create Blade Views
 
-### 8.1) Register View
+### 9.1) Register View
 
 ```
 resources/views/auth/register.blade.php
@@ -324,7 +379,7 @@ resources/views/auth/register.blade.php
 </html>
 ```
 
-###  8.2) Login View
+###  9.2) Login View
 
 ```
 resources/views/auth/login.blade.php
@@ -396,7 +451,7 @@ resources/views/auth/login.blade.php
 </html>
 ```
 
-### 8.3) Dashboard
+### 9.3) Dashboard
 
 ```
 resources/views/dashboard.blade.php
@@ -476,7 +531,7 @@ resources/views/dashboard.blade.php
 
 ---
 
-##  Step 9: Define Web Routes
+##  Step 10: Define Web Routes
 
 ```
 routes/web.php
