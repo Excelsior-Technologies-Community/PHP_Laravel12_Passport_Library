@@ -12,19 +12,20 @@ class UserController extends Controller
     {
         $query = User::withTrashed();
 
-        // SEARCH (name, email, status)
         if ($request->has('search') && $request->search != '') {
-
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%")
-                    ->orWhere('status', $search == 'active' ? 1 : ($search == 'inactive' ? 0 : null));
+                  ->orWhere('email', 'like', "%$search%")
+                  ->orWhere('status', $search == 'active' ? 1 : ($search == 'inactive' ? 0 : null));
             });
         }
 
-        $users = $query->paginate(4);
+        $users = $query->latest()->paginate(5);
+
+        if ($request->ajax()) {
+            return view('users.partials.table', compact('users'))->render();
+        }
 
         return view('users.index', compact('users'));
     }
@@ -48,7 +49,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         if ($user->trashed()) {
-            return back()->with('success', 'Cannot change status of a deleted user!');
+            return back()->with('error', 'Cannot change status of a deleted user!');
         }
 
         $user->status = !$user->status;
@@ -56,7 +57,6 @@ class UserController extends Controller
         return back()->with('success', 'User status updated successfully!');
     }
 
-    // Export users CSV
     public function export()
     {
         $filename = 'users.csv';
@@ -69,9 +69,8 @@ class UserController extends Controller
 
         $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
-            // Header row
             fputcsv($file, ['ID', 'Name', 'Email', 'Status', 'Created At']);
-            // User rows
+            
             foreach ($users as $user) {
                 fputcsv($file, [
                     $user->id,
@@ -84,7 +83,6 @@ class UserController extends Controller
             fclose($file);
         };
 
-        // Pass headers directly in the third argument
         return response()->stream($callback, 200, $headers);
     }
 }
