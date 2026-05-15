@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\UserController;
 
-// Public routes
 Route::get('/', function () {
     return view('welcome');
 });
@@ -15,13 +14,12 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::get('/login', [AuthController::class, 'showLogin']);
 Route::post('/login', [AuthController::class, 'login']);
 
-// Protected routes (auth required)
 Route::middleware('auth')->group(function () {
-    // Dashboard & logout
     Route::get('/dashboard', [AuthController::class, 'dashboard']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
     Route::get('/logout', [AuthController::class, 'logout']);
 
-    // Users management
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/delete/{id}', [UserController::class, 'destroy']);
     Route::get('/users/restore/{id}', [UserController::class, 'restore']);
